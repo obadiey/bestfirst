@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  age        Int
+  bio        String   @default("")
+  photo      String   @default("")
+  role       String   // INVITER or INVITEE
+  location   String   @default("")
+  occupation String   @default("")
+  interests  String   @default("")
+  credits    Int      @default(500)
+  createdAt  DateTime @default(now())
+
+  bids               Bid[]
+  optIns             OptIn[]
+  customExperiences  Experience[]   @relation("CreatedBy")
+  wonExperiences     Experience[]   @relation("WonBy")
+  matchedDates       Experience[]   @relation("MatchedInvitee")
+}
+
+model Experience {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  location      String
+  dateTime      DateTime
+  image         String   @default("")
+  minimumBid    Int      @default(50)
+  status        String   @default("OPEN") // OPEN, BIDDING_CLOSED, ASSIGNED, MATCHED, COMPLETED
+  isCustom      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  createdById   String?
+  createdBy     User?    @relation("CreatedBy", fields: [createdById], references: [id])
+
+  winnerId      String?
+  winner        User?    @relation("WonBy", fields: [winnerId], references: [id])
+
+  matchedInviteeId String?
+  matchedInvitee   User?  @relation("MatchedInvitee", fields: [matchedInviteeId], references: [id])
+
+  bids          Bid[]
+  optIns        OptIn[]
+}
+
+model Bid {
+  id            String   @id @default(cuid())
+  amount        Int
+  status        String   @default("ACTIVE") // ACTIVE, WON, LOST
+  createdAt     DateTime @default(now())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  experienceId  String
+  experience    Experience @relation(fields: [experienceId], references: [id])
+
+  @@unique([userId, experienceId])
+}
+
+model OptIn {
+  id            String   @id @default(cuid())
+  message       String   @default("")
+  status        String   @default("PENDING") // PENDING, SELECTED, NOT_SELECTED
+  createdAt     DateTime @default(now())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  experienceId  String
+  experience    Experience @relation(fields: [experienceId], references: [id])
+
+  @@unique([userId, experienceId])
+}
