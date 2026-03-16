@@ -56,7 +56,11 @@ export default function ExperienceCard({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-      <div className="h-40 bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-5xl">
+      <div className={`h-40 bg-gradient-to-br flex items-center justify-center text-5xl ${
+        role === "INVITER"
+          ? "from-inviter-100 to-inviter-200"
+          : "from-invitee-100 to-invitee-200"
+      }`}>
         {CATEGORY_EMOJI[experience.category] || "📅"}
       </div>
       <div className="p-5">

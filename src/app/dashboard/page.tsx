@@ -1,12 +1,14 @@
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUserWithRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import InviterDashboard from "./InviterDashboard";
 import InviteeDashboard from "./InviteeDashboard";
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserWithRole();
   if (!user) redirect("/auth?mode=login");
+
+  const isInviter = user.activeRole === "INVITER";
 
   return (
     <div>
@@ -16,14 +18,26 @@ export default async function DashboardPage() {
           Welcome back, {user.name}
         </h1>
         <p className="text-gray-500 mb-8">
-          {user.role === "INVITER"
-            ? "Manage your bids and dates"
-            : "See your upcoming dates"}
+          Manage your dates from both sides
         </p>
-        {user.role === "INVITER" ? (
-          <InviterDashboard />
+
+        {/* Primary section (active role) */}
+        {isInviter ? (
+          <>
+            <InviterDashboard />
+            <div className="mt-10">
+              <h2 className="text-lg font-semibold mb-4 text-gray-400">Your Invitee Activity</h2>
+              <InviteeDashboard compact />
+            </div>
+          </>
         ) : (
-          <InviteeDashboard />
+          <>
+            <InviteeDashboard />
+            <div className="mt-10">
+              <h2 className="text-lg font-semibold mb-4 text-gray-400">Your Inviter Activity</h2>
+              <InviterDashboard compact />
+            </div>
+          </>
         )}
       </div>
     </div>

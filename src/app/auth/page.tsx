@@ -145,6 +145,9 @@ function AuthForm() {
                     Browse & Accept
                   </button>
                 </div>
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  You can switch roles anytime after signing up
+                </p>
               </div>
             </>
           )}

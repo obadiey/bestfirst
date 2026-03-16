@@ -317,6 +317,24 @@ async function main() {
 
   console.log(`Created ${experiences.length} experiences`);
 
+  // Create dual-role demo user
+  const sam = await prisma.user.create({
+    data: {
+      email: "sam@demo.com",
+      name: "Sam Taylor",
+      age: 28,
+      bio: "Photographer and foodie who loves being on both sides of a great date. Sometimes I plan, sometimes I go with the flow.",
+      photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sam",
+      role: "INVITER",
+      location: "New York, NY",
+      occupation: "Photographer",
+      interests: "photography, food, travel, art",
+      credits: 500,
+    },
+  });
+
+  console.log("Created dual-role user: Sam Taylor");
+
   // Create some opt-ins for the ASSIGNED experiences
   const assignedExperiences = experiences.filter((e) => e.status === "ASSIGNED");
 
@@ -361,6 +379,20 @@ async function main() {
     ],
   });
 
+  // Sam bids as inviter on Rooftop Jazz Night
+  await prisma.bid.create({
+    data: { userId: sam.id, experienceId: experiences[6].id, amount: 100 },
+  });
+
+  // Sam opts in as invitee on Helicopter Tour
+  await prisma.optIn.create({
+    data: {
+      userId: sam.id,
+      experienceId: assignedExperiences[1].id,
+      message: "This sounds incredible! I'd love to join.",
+    },
+  });
+
   // Some bids on OPEN experiences
   await prisma.bid.createMany({
     data: [
@@ -378,6 +410,8 @@ async function main() {
   inviters.forEach((u) => console.log(`  ${u.name}: ${u.email}`));
   console.log("\nInvitees (login with email):");
   invitees.forEach((u) => console.log(`  ${u.name}: ${u.email}`));
+  console.log("\nDual-role (login with email):");
+  console.log(`  ${sam.name}: ${sam.email} (has both bids and opt-ins, try switching roles!)`);
   console.log("\nAll passwords are handled by cookie-based mock auth (no password needed)");
 }
 

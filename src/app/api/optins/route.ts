@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getActiveRole } from "@/lib/auth";
 
 // Invitee opts into an experience
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  if (user.role !== "INVITEE") {
+  const activeRole = await getActiveRole(user.role);
+  if (activeRole !== "INVITEE") {
     return NextResponse.json({ error: "Only invitees can opt in" }, { status: 403 });
   }
 
@@ -41,7 +42,8 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  if (user.role !== "INVITER") {
+  const putActiveRole = await getActiveRole(user.role);
+  if (putActiveRole !== "INVITER") {
     return NextResponse.json({ error: "Only inviters can select" }, { status: 403 });
   }
 

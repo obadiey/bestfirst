@@ -36,7 +36,7 @@ type ActiveBid = {
   };
 };
 
-export default function InviterDashboard() {
+export default function InviterDashboard({ compact = false }: { compact?: boolean }) {
   const [wonExperiences, setWonExperiences] = useState<WonExperience[]>([]);
   const [activeBids, setActiveBids] = useState<ActiveBid[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +65,26 @@ export default function InviterDashboard() {
   }
 
   if (loading) return <p className="text-gray-400">Loading...</p>;
+
+  if (compact) {
+    const total = wonExperiences.length + activeBids.length;
+    if (total === 0) {
+      return <p className="text-sm text-gray-400">No inviter activity yet.</p>;
+    }
+    return (
+      <div className="bg-gray-50 rounded-xl border p-4 space-y-2">
+        {wonExperiences.length > 0 && (
+          <p className="text-sm text-gray-600">{wonExperiences.length} won experience{wonExperiences.length !== 1 ? "s" : ""}</p>
+        )}
+        {activeBids.length > 0 && (
+          <p className="text-sm text-gray-600">{activeBids.length} active bid{activeBids.length !== 1 ? "s" : ""}</p>
+        )}
+        <Link href="/experiences" className="text-sm text-brand-600 hover:underline">
+          View details →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">

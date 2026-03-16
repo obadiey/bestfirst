@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getActiveRole } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  if (user.role !== "INVITER") {
+  const activeRole = await getActiveRole(user.role);
+  if (activeRole !== "INVITER") {
     return NextResponse.json({ error: "Only inviters can bid" }, { status: 403 });
   }
 

@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       },
     });
     cookies().set("userId", user.id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+    cookies().set("activeRole", role, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     return NextResponse.json({ user });
   }
 
@@ -36,11 +37,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No account found with that email" }, { status: 404 });
     }
     cookies().set("userId", user.id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+    cookies().set("activeRole", user.role, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     return NextResponse.json({ user });
   }
 
   if (body.action === "logout") {
     cookies().delete("userId");
+    cookies().delete("activeRole");
     return NextResponse.json({ ok: true });
   }
 

@@ -23,7 +23,7 @@ type OptIn = {
   };
 };
 
-export default function InviteeDashboard() {
+export default function InviteeDashboard({ compact = false }: { compact?: boolean }) {
   const [optIns, setOptIns] = useState<OptIn[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,6 +41,25 @@ export default function InviteeDashboard() {
   const matched = optIns.filter((o) => o.status === "SELECTED");
   const pending = optIns.filter((o) => o.status === "PENDING");
   const notSelected = optIns.filter((o) => o.status === "NOT_SELECTED");
+
+  if (compact) {
+    if (optIns.length === 0) {
+      return <p className="text-sm text-gray-400">No invitee activity yet.</p>;
+    }
+    return (
+      <div className="bg-gray-50 rounded-xl border p-4 space-y-2">
+        {matched.length > 0 && (
+          <p className="text-sm text-green-600">{matched.length} upcoming date{matched.length !== 1 ? "s" : ""}</p>
+        )}
+        {pending.length > 0 && (
+          <p className="text-sm text-yellow-600">{pending.length} pending opt-in{pending.length !== 1 ? "s" : ""}</p>
+        )}
+        <Link href="/experiences" className="text-sm text-brand-600 hover:underline">
+          View details →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">

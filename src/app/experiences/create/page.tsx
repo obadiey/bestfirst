@@ -1,12 +1,12 @@
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUserWithRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import CreateForm from "./CreateForm";
 
 export default async function CreateExperiencePage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserWithRole();
   if (!user) redirect("/auth?mode=login");
-  if (user.role !== "INVITER") redirect("/dashboard");
+  if (user.activeRole !== "INVITER") redirect("/dashboard");
 
   return (
     <div>
