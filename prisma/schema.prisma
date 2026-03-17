@@ -26,6 +26,29 @@ model User {
   customExperiences  Experience[]   @relation("CreatedBy")
   wonExperiences     Experience[]   @relation("WonBy")
   matchedDates       Experience[]   @relation("MatchedInvitee")
+  photos             ProfilePhoto[]
+  prompts            ProfilePrompt[]
+}
+
+model ProfilePhoto {
+  id       String @id @default(cuid())
+  url      String
+  order    Int    @default(0)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, order])
+}
+
+model ProfilePrompt {
+  id       String @id @default(cuid())
+  prompt   String
+  answer   String
+  order    Int    @default(0)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, order])
 }
 
 model Experience {

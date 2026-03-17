@@ -11,30 +11,33 @@ export default async function DashboardPage() {
   const isInviter = user.activeRole === "INVITER";
 
   return (
-    <div>
+    <div className="pb-24">
       <Navbar user={user} />
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold mb-1">
-          Welcome back, {user.name}
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0.5">
+          Hey, {user.name.split(" ")[0]}
         </h1>
-        <p className="text-gray-500 mb-8">
-          Manage your dates from both sides
+        <p className="text-[15px] text-gray-400 mb-6">
+          {isInviter ? "Plan something amazing" : "Find your next date"}
         </p>
 
-        {/* Primary section (active role) */}
         {isInviter ? (
           <>
             <InviterDashboard />
-            <div className="mt-10">
-              <h2 className="text-lg font-semibold mb-4 text-gray-400">Your Invitee Activity</h2>
+            <div className="mt-8">
+              <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
+                Your Invitee Activity
+              </h2>
               <InviteeDashboard compact />
             </div>
           </>
         ) : (
           <>
             <InviteeDashboard />
-            <div className="mt-10">
-              <h2 className="text-lg font-semibold mb-4 text-gray-400">Your Inviter Activity</h2>
+            <div className="mt-8">
+              <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
+                Your Inviter Activity
+              </h2>
               <InviterDashboard compact />
             </div>
           </>

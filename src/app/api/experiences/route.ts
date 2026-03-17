@@ -7,18 +7,21 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
   const searchParams = req.nextUrl.searchParams;
-  const view = searchParams.get("view"); // "inviter" | "invitee"
+  const view = searchParams.get("view");
 
   if (view === "invitee") {
-    // Invitees see experiences that have been won (ASSIGNED status) with winner profile
-    // Exclude experiences where the user is the winner (self-matching block)
     const experiences = await prisma.experience.findMany({
       where: {
         status: { in: ["ASSIGNED", "MATCHED"] },
         winnerId: { not: user.id },
       },
       include: {
-        winner: true,
+        winner: {
+          include: {
+            photos: { orderBy: { order: "asc" } },
+            prompts: { orderBy: { order: "asc" } },
+          },
+        },
         optIns: { where: { userId: user.id } },
       },
       orderBy: { dateTime: "asc" },
@@ -26,7 +29,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ experiences });
   }
 
-  // Inviters see OPEN experiences they can bid on
   const experiences = await prisma.experience.findMany({
     where: { status: "OPEN" },
     include: {
@@ -50,7 +52,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only inviters can create experiences" }, { status: 403 });
   }
 
-  // Check weekly custom experience limit
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const recentCustom = await prisma.experience.count({
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
       status: "ASSIGNED",
       minimumBid: 0,
       createdById: user.id,
-      winnerId: user.id, // Creator automatically wins their own custom experience
+      winnerId: user.id,
     },
   });
 

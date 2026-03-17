@@ -49,22 +49,19 @@ export default function InviterBrowse() {
     if (!res.ok) {
       setMessage(data.error);
     } else {
-      setMessage("Bid placed successfully!");
-      // Refresh
-      const updated = await fetch("/api/experiences?view=inviter").then((r) =>
-        r.json()
-      );
+      setMessage("Bid placed!");
+      const updated = await fetch("/api/experiences?view=inviter").then((r) => r.json());
       setExperiences(updated.experiences || []);
     }
     setBidding(null);
   }
 
-  if (loading) return <p className="text-gray-400">Loading experiences...</p>;
+  if (loading) return <div className="py-12 text-center text-gray-300 text-[14px]">Loading experiences...</div>;
 
   if (experiences.length === 0) {
     return (
-      <div className="bg-white rounded-xl border p-8 text-center text-gray-400">
-        No experiences available right now. Check back soon!
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-card">
+        <p className="text-gray-400 text-[15px]">No experiences available right now</p>
       </div>
     );
   }
@@ -73,16 +70,16 @@ export default function InviterBrowse() {
     <div>
       {message && (
         <div
-          className={`mb-6 p-3 rounded-lg text-sm ${
-            message.includes("success")
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
+          className={`mb-4 p-3.5 rounded-2xl text-[14px] font-medium ${
+            message.includes("placed")
+              ? "bg-green-50 text-green-600"
+              : "bg-red-50 text-red-600"
           }`}
         >
           {message}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-4">
         {experiences.map((exp) => (
           <ExperienceCard key={exp.id} experience={exp} role="INVITER">
             <div className="flex gap-2 mt-3">
@@ -93,13 +90,13 @@ export default function InviterBrowse() {
                 onChange={(e) =>
                   setBidAmounts({ ...bidAmounts, [exp.id]: e.target.value })
                 }
-                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="flex-1 bg-gray-50 border-0 rounded-xl px-3.5 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-300"
                 min={exp.minimumBid}
               />
               <button
                 onClick={() => placeBid(exp.id)}
                 disabled={bidding === exp.id}
-                className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
+                className="bg-gray-900 text-white px-6 py-3 rounded-xl text-[14px] font-medium hover:bg-gray-800 transition disabled:opacity-40 active:scale-[0.98]"
               >
                 {bidding === exp.id ? "..." : "Bid"}
               </button>

@@ -2,6 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ProfileCard from "@/components/ProfileCard";
+
+type ProfilePhoto = { url: string };
+type ProfilePrompt = { prompt: string; answer: string };
+
+type Winner = {
+  id: string;
+  name: string;
+  age: number;
+  bio: string;
+  photo: string;
+  occupation: string;
+  interests: string;
+  location: string;
+  photos: ProfilePhoto[];
+  prompts: ProfilePrompt[];
+};
 
 type OptIn = {
   id: string;
@@ -14,12 +31,7 @@ type OptIn = {
     location: string;
     dateTime: string;
     status: string;
-    winner: {
-      name: string;
-      age: number;
-      photo: string;
-      bio: string;
-    } | null;
+    winner: Winner | null;
   };
 };
 
@@ -36,7 +48,7 @@ export default function InviteeDashboard({ compact = false }: { compact?: boolea
       });
   }, []);
 
-  if (loading) return <p className="text-gray-400">Loading...</p>;
+  if (loading) return <div className="py-8 text-center text-gray-300 text-[14px]">Loading...</div>;
 
   const matched = optIns.filter((o) => o.status === "SELECTED");
   const pending = optIns.filter((o) => o.status === "PENDING");
@@ -44,121 +56,106 @@ export default function InviteeDashboard({ compact = false }: { compact?: boolea
 
   if (compact) {
     if (optIns.length === 0) {
-      return <p className="text-sm text-gray-400">No invitee activity yet.</p>;
+      return <p className="text-[14px] text-gray-400">No invitee activity yet.</p>;
     }
     return (
-      <div className="bg-gray-50 rounded-xl border p-4 space-y-2">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 shadow-card">
         {matched.length > 0 && (
-          <p className="text-sm text-green-600">{matched.length} upcoming date{matched.length !== 1 ? "s" : ""}</p>
+          <p className="text-[14px] text-green-600">{matched.length} upcoming date{matched.length !== 1 ? "s" : ""}</p>
         )}
         {pending.length > 0 && (
-          <p className="text-sm text-yellow-600">{pending.length} pending opt-in{pending.length !== 1 ? "s" : ""}</p>
+          <p className="text-[14px] text-amber-600">{pending.length} pending opt-in{pending.length !== 1 ? "s" : ""}</p>
         )}
-        <Link href="/experiences" className="text-sm text-brand-600 hover:underline">
-          View details →
+        <Link href="/experiences" className="text-[14px] text-brand-600 font-medium">
+          View details
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
+      {/* Upcoming dates */}
       {matched.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-4 text-green-700">
+          <h2 className="text-[13px] font-medium text-green-600 uppercase tracking-wider mb-3">
             Upcoming Dates
           </h2>
-          {matched.map((opt) => (
-            <div
-              key={opt.id}
-              className="bg-green-50 border border-green-200 rounded-xl p-6 mb-3"
-            >
-              <h3 className="font-semibold text-lg">{opt.experience.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                {opt.experience.location} ·{" "}
-                {new Date(opt.experience.dateTime).toLocaleDateString()}
-              </p>
-              {opt.experience.winner && (
-                <div className="flex items-center gap-3">
-                  <img
-                    src={opt.experience.winner.photo}
-                    alt={opt.experience.winner.name}
-                    className="w-10 h-10 rounded-full bg-gray-200"
+          <div className="space-y-3">
+            {matched.map((opt) => (
+              <div key={opt.id} className="bg-white rounded-2xl border border-green-100 shadow-card p-5">
+                <h3 className="font-semibold text-[16px] text-gray-900 mb-1">{opt.experience.title}</h3>
+                <p className="text-[13px] text-gray-400 mb-3">
+                  {opt.experience.location} · {new Date(opt.experience.dateTime).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                </p>
+                {opt.experience.winner && (
+                  <ProfileCard
+                    user={opt.experience.winner}
+                    variant="mini"
+                    subtitle={`Your date`}
                   />
-                  <div>
-                    <p className="font-medium">
-                      Date with {opt.experience.winner.name},{" "}
-                      {opt.experience.winner.age}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {opt.experience.winner.bio}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
+      {/* Pending */}
       {pending.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-4">Awaiting Response</h2>
-          {pending.map((opt) => (
-            <div
-              key={opt.id}
-              className="bg-white border rounded-xl p-5 mb-3 flex items-center justify-between"
-            >
-              <div>
-                <p className="font-medium">{opt.experience.title}</p>
-                <p className="text-sm text-gray-500">
-                  {opt.experience.location} ·{" "}
-                  {new Date(opt.experience.dateTime).toLocaleDateString()}
-                </p>
+          <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
+            Awaiting Response
+          </h2>
+          <div className="space-y-2">
+            {pending.map((opt) => (
+              <div key={opt.id} className="bg-white rounded-2xl border border-gray-100 shadow-card p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-[15px] text-gray-900">{opt.experience.title}</p>
+                  <p className="text-[13px] text-gray-400">
+                    {opt.experience.location} · {new Date(opt.experience.dateTime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+                <span className="text-[11px] bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full font-medium">
+                  Pending
+                </span>
               </div>
-              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
-                Pending
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </section>
       )}
 
+      {/* Not selected */}
       {notSelected.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-4 text-gray-400">
+          <h2 className="text-[13px] font-medium text-gray-300 uppercase tracking-wider mb-3">
             Not Selected
           </h2>
-          {notSelected.map((opt) => (
-            <div
-              key={opt.id}
-              className="bg-gray-50 border rounded-xl p-5 mb-3 opacity-60"
-            >
-              <p className="font-medium">{opt.experience.title}</p>
-              <p className="text-sm text-gray-500">
-                {opt.experience.location} ·{" "}
-                {new Date(opt.experience.dateTime).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {notSelected.map((opt) => (
+              <div key={opt.id} className="bg-gray-50 rounded-2xl p-4 opacity-60">
+                <p className="font-medium text-[15px] text-gray-600">{opt.experience.title}</p>
+                <p className="text-[13px] text-gray-400">
+                  {opt.experience.location} · {new Date(opt.experience.dateTime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </p>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
       {optIns.length === 0 && (
-        <div className="bg-white rounded-xl border p-8 text-center text-gray-400">
-          <p className="mb-3">You haven&apos;t opted into any dates yet.</p>
-          <Link
-            href="/experiences"
-            className="text-brand-600 font-medium hover:underline"
-          >
-            Browse available dates →
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-card">
+          <p className="text-gray-400 text-[15px] mb-3">No dates yet</p>
+          <Link href="/experiences" className="text-[14px] text-brand-600 font-medium">
+            Browse available dates
           </Link>
         </div>
       )}
 
       <Link
         href="/experiences"
-        className="inline-block bg-brand-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-700 transition"
+        className="block w-full bg-gray-900 text-white py-3.5 rounded-2xl text-[14px] font-medium text-center hover:bg-gray-800 transition active:scale-[0.98]"
       >
         Browse Dates
       </Link>

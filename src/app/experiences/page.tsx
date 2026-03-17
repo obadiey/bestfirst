@@ -8,21 +8,19 @@ export default async function ExperiencesPage() {
   const user = await getCurrentUserWithRole();
   if (!user) redirect("/auth?mode=login");
 
+  const isInviter = user.activeRole === "INVITER";
+
   return (
-    <div>
+    <div className="pb-24">
       <Navbar user={user} />
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold mb-1">
-          {user.activeRole === "INVITER"
-            ? "Available Experiences"
-            : "Available Dates"}
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0.5">
+          {isInviter ? "Experiences" : "Available Dates"}
         </h1>
-        <p className="text-gray-500 mb-8">
-          {user.activeRole === "INVITER"
-            ? "Bid on curated date experiences"
-            : "Browse dates and opt into ones you like"}
+        <p className="text-[15px] text-gray-400 mb-6">
+          {isInviter ? "Bid on curated date experiences" : "Find a date that excites you"}
         </p>
-        {user.activeRole === "INVITER" ? <InviterBrowse /> : <InviteeBrowse />}
+        {isInviter ? <InviterBrowse /> : <InviteeBrowse />}
       </div>
     </div>
   );

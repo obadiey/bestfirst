@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import RoleToggle from "./RoleToggle";
 import RoleSwitchDialog from "./RoleSwitchDialog";
 
 type NavbarProps = {
@@ -12,6 +11,7 @@ type NavbarProps = {
 
 export default function Navbar({ user }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [showDialog, setShowDialog] = useState(false);
   const [pendingRole, setPendingRole] = useState("");
   const [credits, setCredits] = useState(user?.credits ?? 0);
@@ -24,11 +24,6 @@ export default function Navbar({ user }: NavbarProps) {
     });
     router.push("/");
     router.refresh();
-  }
-
-  function handleToggle(newRole: string) {
-    setPendingRole(newRole);
-    setShowDialog(true);
   }
 
   async function handleConfirmSwitch() {
@@ -46,62 +41,77 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   const activeRole = user?.activeRole || user?.role || "INVITER";
-  const borderColor = activeRole === "INVITER" ? "border-inviter-500" : "border-invitee-500";
+  const isInviter = activeRole === "INVITER";
+
+  const navItems = [
+    { href: "/dashboard", label: "Home", icon: HomeIcon },
+    { href: "/experiences", label: "Browse", icon: SearchIcon },
+    ...(isInviter ? [{ href: "/experiences/create", label: "Create", icon: PlusIcon }] : []),
+    { href: "/profile", label: "Profile", icon: UserIcon },
+  ];
 
   return (
     <>
-      <nav className={`bg-white border-b-2 ${borderColor} px-6 py-3`}>
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="text-xl font-bold text-brand-600">
-            Best First Date
+      {/* Top bar - minimal on mobile */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-5 py-3 sticky top-0 z-40">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <Link href="/dashboard" className="text-lg font-bold text-gray-900 tracking-tight">
+            bestfirst
           </Link>
           {user && (
-            <div className="flex items-center gap-4">
-              <RoleToggle activeRole={activeRole} onSwitch={handleToggle} />
-              <span className="text-sm text-gray-500">
-                {activeRole === "INVITER" && (
-                  <span className={`bg-inviter-100 text-inviter-700 px-2 py-1 rounded-full text-xs font-medium mr-2`}>
-                    {credits} credits
-                  </span>
-                )}
-                {user.name}
-              </span>
-              <Link
-                href="/dashboard"
-                className="text-sm text-gray-600 hover:text-brand-600"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/experiences"
-                className="text-sm text-gray-600 hover:text-brand-600"
-              >
-                Browse
-              </Link>
-              {activeRole === "INVITER" && (
-                <Link
-                  href="/experiences/create"
-                  className="text-sm text-gray-600 hover:text-brand-600"
-                >
-                  Create Date
-                </Link>
+            <div className="flex items-center gap-3">
+              {isInviter && (
+                <span className="text-[12px] font-medium text-inviter-600 bg-inviter-50 px-2.5 py-1 rounded-full">
+                  {credits} credits
+                </span>
               )}
-              <Link
-                href="/profile"
-                className="text-sm text-gray-600 hover:text-brand-600"
+              <button
+                onClick={() => {
+                  setPendingRole(isInviter ? "INVITEE" : "INVITER");
+                  setShowDialog(true);
+                }}
+                className={`text-[12px] font-medium px-2.5 py-1 rounded-full transition ${
+                  isInviter
+                    ? "bg-inviter-100 text-inviter-700"
+                    : "bg-invitee-100 text-invitee-700"
+                }`}
               >
-                Profile
-              </Link>
+                {isInviter ? "Inviter" : "Invitee"}
+              </button>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-400 hover:text-gray-600"
+                className="text-[12px] text-gray-400 hover:text-gray-600 transition"
               >
                 Sign Out
               </button>
             </div>
           )}
         </div>
-      </nav>
+      </header>
+
+      {/* Bottom navigation - mobile */}
+      {user && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 z-40 pb-safe">
+          <div className="max-w-lg mx-auto flex items-center justify-around px-2 pt-2 pb-1">
+            {navItems.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition ${
+                    active ? "text-gray-900" : "text-gray-400"
+                  }`}
+                >
+                  <item.icon active={active} />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+
       {user && (
         <RoleSwitchDialog
           isOpen={showDialog}
@@ -112,5 +122,38 @@ export default function Navbar({ user }: NavbarProps) {
         />
       )}
     </>
+  );
+}
+
+// Icon components
+function HomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+    </svg>
+  );
+}
+
+function SearchIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
+}
+
+function PlusIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  );
+}
+
+function UserIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    </svg>
   );
 }

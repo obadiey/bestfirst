@@ -7,28 +7,32 @@ export default async function Home() {
   if (user) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-brand-50 via-white to-brand-100">
-      <div className="text-center max-w-2xl px-6">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Best First Date
-        </h1>
-        <p className="text-xl text-gray-600 mb-2">
-          The best first date you never planned.
-        </p>
-        <p className="text-gray-500 mb-10 max-w-md mx-auto">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
+      <div className="text-center max-w-sm mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-3">
+            bestfirst
+          </h1>
+          <p className="text-[17px] text-gray-500 leading-relaxed">
+            The best first date you never planned.
+          </p>
+        </div>
+
+        <p className="text-[15px] text-gray-400 mb-10 leading-relaxed">
           Browse curated date experiences. Bid for the ones you love.
           Get matched with someone amazing.
         </p>
-        <div className="flex gap-4 justify-center">
+
+        <div className="space-y-3">
           <Link
             href="/auth?mode=signup"
-            className="bg-brand-600 text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-brand-700 transition"
+            className="block w-full bg-gray-900 text-white py-3.5 rounded-2xl text-[15px] font-medium hover:bg-gray-800 transition active:scale-[0.98]"
           >
             Get Started
           </Link>
           <Link
             href="/auth?mode=login"
-            className="border-2 border-brand-600 text-brand-600 px-8 py-3 rounded-full text-lg font-medium hover:bg-brand-50 transition"
+            className="block w-full border border-gray-200 text-gray-700 py-3.5 rounded-2xl text-[15px] font-medium hover:bg-gray-50 transition active:scale-[0.98]"
           >
             Sign In
           </Link>

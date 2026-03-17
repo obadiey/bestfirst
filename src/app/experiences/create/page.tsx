@@ -9,12 +9,12 @@ export default async function CreateExperiencePage() {
   if (user.activeRole !== "INVITER") redirect("/dashboard");
 
   return (
-    <div>
+    <div className="pb-24">
       <Navbar user={user} />
-      <div className="max-w-2xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold mb-2">Create a Custom Date</h1>
-        <p className="text-gray-500 mb-8">
-          Plan your own date experience (1 per week, free)
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0.5">Create a Date</h1>
+        <p className="text-[15px] text-gray-400 mb-6">
+          Plan your own experience (1 per week, free)
         </p>
         <CreateForm />
       </div>

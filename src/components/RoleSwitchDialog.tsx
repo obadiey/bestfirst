@@ -20,35 +20,36 @@ export default function RoleSwitchDialog({
   const toInviter = targetRole === "INVITER";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-2">Ready to switch sides?</h2>
-        <p className="text-gray-600 mb-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-modal p-6 max-w-sm w-full mx-4 mb-0 sm:mb-0">
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5 sm:hidden" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Switch to {toInviter ? "Inviter" : "Invitee"}?</h2>
+        <p className="text-[15px] text-gray-500 leading-relaxed mb-4">
           {toInviter
-            ? "Time to plan something special! You\u2019ll be browsing experiences to bid on and creating dates."
-            : "Looking for a great date? You\u2019ll be browsing dates that inviters have won and opting into the ones you like."}
+            ? "Plan dates and bid on experiences. You'll be browsing curated experiences to win."
+            : "Browse and opt into dates. You'll see experiences that inviters have planned."}
         </p>
         {toInviter && currentCredits === 0 && (
-          <p className="text-inviter-600 text-sm font-medium mb-4 bg-inviter-50 px-3 py-2 rounded-lg">
-            You&apos;ll receive 500 credits to start bidding!
-          </p>
+          <div className="text-[14px] text-inviter-700 font-medium bg-inviter-50 px-4 py-3 rounded-2xl mb-4">
+            You&apos;ll receive 500 credits to start bidding
+          </div>
         )}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-2">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 transition"
+            className="flex-1 py-3 rounded-2xl text-[15px] font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 transition"
           >
-            Stay here
+            Cancel
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium text-white transition ${
+            className={`flex-1 py-3 rounded-2xl text-[15px] font-medium text-white transition ${
               toInviter
                 ? "bg-inviter-600 hover:bg-inviter-700"
                 : "bg-invitee-600 hover:bg-invitee-700"
             }`}
           >
-            Let&apos;s go!
+            Switch
           </button>
         </div>
       </div>
