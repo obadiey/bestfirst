@@ -18,6 +18,7 @@ model User {
   location   String   @default("")
   occupation String   @default("")
   interests  String   @default("")
+  phone      String   @default("")
   credits    Int      @default(500)
   createdAt  DateTime @default(now())
 
@@ -72,6 +73,9 @@ model Experience {
 
   matchedInviteeId String?
   matchedInvitee   User?  @relation("MatchedInvitee", fields: [matchedInviteeId], references: [id])
+
+  phoneSharedByInviter Boolean @default(false)
+  phoneSharedByInvitee Boolean @default(false)
 
   bids          Bid[]
   optIns        OptIn[]

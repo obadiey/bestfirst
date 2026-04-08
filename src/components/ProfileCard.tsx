@@ -152,6 +152,13 @@ export default function ProfileCard(props: Props) {
     return <FullProfileCard {...props} />;
   }
 
+  // Parent-controlled mode: parent wants to manage its own expand state
+  // (e.g. to attach an actionButton to the full profile). Don't shadow it.
+  if (props.onExpand) {
+    return <MiniProfileCard {...props} />;
+  }
+
+  // Self-managed expand
   return (
     <>
       <MiniProfileCard {...props} onExpand={() => setExpanded(true)} />

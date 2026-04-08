@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import ProfileCard, { FullProfileCard } from "@/components/ProfileCard";
+import MeetingCard from "@/components/MeetingCard";
 
 type ProfilePhoto = { url: string };
 type ProfilePrompt = { prompt: string; answer: string };
@@ -16,6 +17,7 @@ type OptInUser = {
   occupation: string;
   interests: string;
   location: string;
+  phone?: string;
   photos: ProfilePhoto[];
   prompts: ProfilePrompt[];
 };
@@ -28,6 +30,8 @@ type WonExperience = {
   dateTime: string;
   status: string;
   isCustom: boolean;
+  phoneSharedByInviter: boolean;
+  phoneSharedByInvitee: boolean;
   optIns: { id: string; message: string; status: string; user: OptInUser }[];
   matchedInvitee: OptInUser | null;
 };
@@ -44,21 +48,27 @@ type ActiveBid = {
   };
 };
 
-export default function InviterDashboard({ compact = false }: { compact?: boolean }) {
+export default function InviterDashboard({
+  compact = false,
+  currentUserHasPhone = false,
+}: {
+  compact?: boolean;
+  currentUserHasPhone?: boolean;
+}) {
   const [wonExperiences, setWonExperiences] = useState<WonExperience[]>([]);
   const [activeBids, setActiveBids] = useState<ActiveBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedProfile, setExpandedProfile] = useState<{ user: OptInUser; experienceId: string } | null>(null);
 
-  useEffect(() => {
-    fetch("/api/experiences/mine")
-      .then((r) => r.json())
-      .then((data) => {
-        setWonExperiences(data.wonExperiences || []);
-        setActiveBids(data.activeBids || []);
-        setLoading(false);
-      });
+  const refetch = useCallback(async () => {
+    const data = await fetch("/api/experiences/mine").then((r) => r.json());
+    setWonExperiences(data.wonExperiences || []);
+    setActiveBids(data.activeBids || []);
   }, []);
+
+  useEffect(() => {
+    refetch().finally(() => setLoading(false));
+  }, [refetch]);
 
   async function selectInvitee(experienceId: string, inviteeId: string) {
     const res = await fetch("/api/optins", {
@@ -68,8 +78,7 @@ export default function InviterDashboard({ compact = false }: { compact?: boolea
     });
     if (res.ok) {
       setExpandedProfile(null);
-      const data = await fetch("/api/experiences/mine").then((r) => r.json());
-      setWonExperiences(data.wonExperiences || []);
+      await refetch();
     }
   }
 
@@ -95,35 +104,59 @@ export default function InviterDashboard({ compact = false }: { compact?: boolea
     );
   }
 
+  const matchedWon = wonExperiences.filter(
+    (exp) => exp.status === "MATCHED" && exp.matchedInvitee
+  );
+  const awaitingWon = wonExperiences.filter((exp) => exp.status !== "MATCHED");
+
   return (
     <div className="space-y-6">
-      {/* Won Experiences */}
+      {/* Upcoming Dates — matched experiences */}
+      {matchedWon.length > 0 && (
+        <section>
+          <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
+            Upcoming Dates
+          </h2>
+          <div className="space-y-4">
+            {matchedWon.map((exp) => (
+              <MeetingCard
+                key={exp.id}
+                experience={exp}
+                otherUser={exp.matchedInvitee!}
+                perspective="inviter"
+                currentUserHasPhone={currentUserHasPhone}
+                onShared={refetch}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Awaiting match — experiences with pending opt-ins */}
       <section>
         <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
           Your Dates
         </h2>
-        {wonExperiences.length === 0 ? (
+        {awaitingWon.length === 0 && matchedWon.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-card">
             <p className="text-gray-400 text-[15px] mb-3">No won experiences yet</p>
             <Link href="/experiences" className="text-[14px] text-brand-600 font-medium">
               Browse & bid on experiences
             </Link>
           </div>
+        ) : awaitingWon.length === 0 ? (
+          <p className="text-[14px] text-gray-400 italic">
+            All your won experiences are matched.
+          </p>
         ) : (
           <div className="space-y-4">
-            {wonExperiences.map((exp) => (
+            {awaitingWon.map((exp) => (
               <div key={exp.id} className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="font-semibold text-[16px] text-gray-900">{exp.title}</h3>
-                    <span
-                      className={`text-[11px] px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-2 ${
-                        exp.status === "MATCHED"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-amber-50 text-amber-600"
-                      }`}
-                    >
-                      {exp.status === "MATCHED" ? "Matched" : "Awaiting"}
+                    <span className="text-[11px] px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-2 bg-amber-50 text-amber-600">
+                      Awaiting
                     </span>
                   </div>
                   <p className="text-[13px] text-gray-400 mb-4">
@@ -131,18 +164,6 @@ export default function InviterDashboard({ compact = false }: { compact?: boolea
                     {exp.isCustom && " · Custom"}
                   </p>
 
-                  {/* Matched invitee */}
-                  {exp.status === "MATCHED" && exp.matchedInvitee && (
-                    <div className="bg-green-50 rounded-2xl p-4">
-                      <ProfileCard
-                        user={exp.matchedInvitee}
-                        variant="mini"
-                        subtitle={`Your date · ${new Date(exp.dateTime).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}`}
-                      />
-                    </div>
-                  )}
-
-                  {/* Opt-ins - mini cards */}
                   {exp.status === "ASSIGNED" && (
                     <div>
                       {exp.optIns.length === 0 ? (

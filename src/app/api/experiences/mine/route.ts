@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
+// Only include phone when both parties have consented to share.
+function stripPhoneUnlessBothShared<T extends { phone?: string | null } | null>(
+  user: T,
+  bothShared: boolean
+): T {
+  if (!user) return user;
+  if (bothShared) return user;
+  return { ...user, phone: "" };
+}
+
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -27,6 +37,15 @@ export async function GET() {
       },
     },
     orderBy: { dateTime: "asc" },
+  });
+
+  // Strip matched invitee phone unless both parties have shared.
+  const scrubbedWon = wonExperiences.map((exp) => {
+    const bothShared = exp.phoneSharedByInviter && exp.phoneSharedByInvitee;
+    return {
+      ...exp,
+      matchedInvitee: stripPhoneUnlessBothShared(exp.matchedInvitee, bothShared),
+    };
   });
 
   const activeBids = await prisma.bid.findMany({
@@ -55,5 +74,22 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ wonExperiences, activeBids, optIns });
+  // Strip winner's phone from opt-ins unless both parties have shared.
+  const scrubbedOptIns = optIns.map((opt) => {
+    const bothShared =
+      opt.experience.phoneSharedByInviter && opt.experience.phoneSharedByInvitee;
+    return {
+      ...opt,
+      experience: {
+        ...opt.experience,
+        winner: stripPhoneUnlessBothShared(opt.experience.winner, bothShared),
+      },
+    };
+  });
+
+  return NextResponse.json({
+    wonExperiences: scrubbedWon,
+    activeBids,
+    optIns: scrubbedOptIns,
+  });
 }

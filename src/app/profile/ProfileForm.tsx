@@ -17,6 +17,7 @@ type User = {
   location: string;
   occupation: string;
   interests: string;
+  phone: string;
   credits: number;
 };
 
@@ -37,6 +38,7 @@ export default function ProfileForm({ user, initialPhotos, initialPrompts }: Pro
     location: user.location,
     occupation: user.occupation,
     interests: user.interests,
+    phone: user.phone || "",
   });
   const [photos, setPhotos] = useState<string[]>(initialPhotos);
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
@@ -317,6 +319,20 @@ export default function ProfileForm({ user, initialPhotos, initialPrompts }: Pro
               placeholder="e.g. hiking, cooking, travel"
               className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-300"
             />
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-medium text-gray-500 mb-1.5">Phone</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              placeholder="+1 555 010 1234"
+              className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-300"
+            />
+            <p className="text-[12px] text-gray-400 mt-1.5">
+              Only shared with your match when you click Share my number.
+            </p>
           </div>
         </div>
 

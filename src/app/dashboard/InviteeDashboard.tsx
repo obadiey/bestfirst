@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import ProfileCard from "@/components/ProfileCard";
+import MeetingCard from "@/components/MeetingCard";
 
 type ProfilePhoto = { url: string };
 type ProfilePrompt = { prompt: string; answer: string };
@@ -16,6 +16,7 @@ type Winner = {
   occupation: string;
   interests: string;
   location: string;
+  phone?: string;
   photos: ProfilePhoto[];
   prompts: ProfilePrompt[];
 };
@@ -31,22 +32,30 @@ type OptIn = {
     location: string;
     dateTime: string;
     status: string;
+    phoneSharedByInviter: boolean;
+    phoneSharedByInvitee: boolean;
     winner: Winner | null;
   };
 };
 
-export default function InviteeDashboard({ compact = false }: { compact?: boolean }) {
+export default function InviteeDashboard({
+  compact = false,
+  currentUserHasPhone = false,
+}: {
+  compact?: boolean;
+  currentUserHasPhone?: boolean;
+}) {
   const [optIns, setOptIns] = useState<OptIn[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/experiences/mine")
-      .then((r) => r.json())
-      .then((data) => {
-        setOptIns(data.optIns || []);
-        setLoading(false);
-      });
+  const refetch = useCallback(async () => {
+    const data = await fetch("/api/experiences/mine").then((r) => r.json());
+    setOptIns(data.optIns || []);
   }, []);
+
+  useEffect(() => {
+    refetch().finally(() => setLoading(false));
+  }, [refetch]);
 
   if (loading) return <div className="py-8 text-center text-gray-300 text-[14px]">Loading...</div>;
 
@@ -78,25 +87,23 @@ export default function InviteeDashboard({ compact = false }: { compact?: boolea
       {/* Upcoming dates */}
       {matched.length > 0 && (
         <section>
-          <h2 className="text-[13px] font-medium text-green-600 uppercase tracking-wider mb-3">
+          <h2 className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-3">
             Upcoming Dates
           </h2>
-          <div className="space-y-3">
-            {matched.map((opt) => (
-              <div key={opt.id} className="bg-white rounded-2xl border border-green-100 shadow-card p-5">
-                <h3 className="font-semibold text-[16px] text-gray-900 mb-1">{opt.experience.title}</h3>
-                <p className="text-[13px] text-gray-400 mb-3">
-                  {opt.experience.location} · {new Date(opt.experience.dateTime).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                </p>
-                {opt.experience.winner && (
-                  <ProfileCard
-                    user={opt.experience.winner}
-                    variant="mini"
-                    subtitle={`Your date`}
+          <div className="space-y-4">
+            {matched.map(
+              (opt) =>
+                opt.experience.winner && (
+                  <MeetingCard
+                    key={opt.id}
+                    experience={opt.experience}
+                    otherUser={opt.experience.winner}
+                    perspective="invitee"
+                    currentUserHasPhone={currentUserHasPhone}
+                    onShared={refetch}
                   />
-                )}
-              </div>
-            ))}
+                )
+            )}
           </div>
         </section>
       )}

@@ -34,6 +34,7 @@ export async function PUT(req: NextRequest) {
       location: body.location ?? user.location,
       occupation: body.occupation ?? user.occupation,
       interests: body.interests ?? user.interests,
+      phone: body.phone ?? user.phone,
       age: body.age ?? user.age,
     },
   });
