@@ -45,6 +45,7 @@ export default function ProfileForm({ user, initialPhotos, initialPrompts }: Pro
   const [prompts, setPrompts] = useState<PromptEntry[]>(initialPrompts);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [pendingRole, setPendingRole] = useState("");
   const [credits, setCredits] = useState(user.credits);
@@ -53,17 +54,31 @@ export default function ProfileForm({ user, initialPhotos, initialPrompts }: Pro
     e.preventDefault();
     setLoading(true);
     setSaved(false);
-    await fetch("/api/users", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        photos,
-        prompts: prompts.filter((p) => p.prompt && p.answer),
-      }),
-    });
-    setSaved(true);
-    setLoading(false);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          photos,
+          prompts: prompts.filter((p) => p.prompt && p.answer),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error || `Save failed (${res.status})`);
+        return;
+      }
+      setSaved(true);
+      // Invalidate server component cache so other pages (dashboard,
+      // meeting cards) re-read the fresh profile including phone.
+      router.refresh();
+    } catch (err) {
+      setSaveError("Network error — couldn't save profile");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function addPhoto() {
@@ -336,9 +351,14 @@ export default function ProfileForm({ user, initialPhotos, initialPrompts }: Pro
           </div>
         </div>
 
-        {saved && (
+        {saved && !saveError && (
           <div className="bg-green-50 text-green-600 text-[14px] font-medium py-3 px-4 rounded-2xl text-center">
             Profile saved
+          </div>
+        )}
+        {saveError && (
+          <div className="bg-red-50 text-red-600 text-[14px] font-medium py-3 px-4 rounded-2xl text-center">
+            {saveError}
           </div>
         )}
 

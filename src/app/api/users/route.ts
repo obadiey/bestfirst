@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, getActiveRole } from "@/lib/auth";
 
@@ -86,6 +87,11 @@ export async function PUT(req: NextRequest) {
     where: { userId: user.id },
     orderBy: { order: "asc" },
   });
+
+  // Make sure server-rendered pages that depend on the current user
+  // (dashboard, profile) pick up the updated phone / fields immediately.
+  revalidatePath("/dashboard");
+  revalidatePath("/profile");
 
   return NextResponse.json({ user: { ...updated, photos, prompts } });
 }
